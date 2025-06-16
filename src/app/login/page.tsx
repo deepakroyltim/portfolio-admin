@@ -1,42 +1,82 @@
 "use client";
 
-import { Button } from "@heroui/react";
+import { Input, Button, Card, CardBody, Divider } from "@heroui/react";
 import { useSession, signIn as logIn, signOut } from "next-auth/react";
 import { signIn } from "../action/sign-in";
+import { BsGoogle, BsGithub, BsKeyFill } from "react-icons/bs";
+
+export const DiverWithText = ({ text }: { text: string }) => {
+  return (
+    <div className="flex items-center my-4">
+      <div className="flex-grow h-px bg-gray-300" />
+      <span className="px-4 text-sm text-gray-500">{text}</span>
+      <div className="flex-grow h-px bg-gray-300" />
+    </div>
+  );
+};
 
 export default function LoginPage() {
   const { data: session } = useSession();
 
-  console.log(session);
-
   return (
-    <main className="flex-1 p-8 space-y-10">
-      {/* Dashboard Header */}
-      <div>
-        <h1 className="text-3xl font-bold">Login Page</h1>
-        <p className="text-muted-foreground mt-1">
-          Welcome back, Deepak! Here’s a quick overview of your site's
-          performance.
-        </p>
-      </div>
+    <main className="w-full h-screen flex flex-col items-center justify-center bg-base-100 space-y-6">
+      <h1 className="text-4xl font-semibold">Portfolio | Admin Panel</h1>
 
-      {/* Key Metrics */}
-      <section>
-        {session ? (
-          <>
-            <p>Welcome {session.user?.name}. Signed In As</p>
-            <p>{session.user?.email}</p>
-            <button onClick={() => signOut()}>Sign out</button>
-          </>
-        ) : (
-          <>
-            <p>Not Signed In</p>
+      <Card className="w-full max-w-md p-6 shadow-lg">
+        <CardBody className="space-y-6 text-center">
+          <h2 className="text-xl font-bold">Sign In</h2>
+          <Divider />
+          <form className="space-y-4 text-left">
+            <Input
+              type="text"
+              name="userid"
+              label="User Id"
+              placeholder="Please enter user id"
+              className="mb-5"
+              required
+            />
+
+            <Input
+              type="password"
+              name="password"
+              label="Password"
+              placeholder="Please enter password"
+              required
+            />
+
+            <Button
+              type="submit"
+              className="w-full"
+              startContent={<BsKeyFill className="h-5 w-5 rotate-60" />}
+            >
+              Sign in with Credentials
+            </Button>
+          </form>
+
+          <DiverWithText text="or" />
+
+          <div className="space-y-2">
             <form action={signIn}>
-              <Button type="submit">Signin with GitHub</Button>
+              <Button
+                type="submit"
+                className="w-full"
+                startContent={<BsGithub className="w-5 h-5" />}
+              >
+                Sign in with GitHub
+              </Button>
             </form>
-          </>
-        )}
-      </section>
+            <form action={signIn}>
+              <Button
+                type="submit"
+                className="w-full"
+                startContent={<BsGoogle className="w-5 h-5" />}
+              >
+                Sign in with Google
+              </Button>
+            </form>
+          </div>
+        </CardBody>
+      </Card>
     </main>
   );
 }
