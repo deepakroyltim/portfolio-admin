@@ -11,6 +11,7 @@ import { BsSun, BsMoon } from "react-icons/bs";
 import SideNavbar from "./SideNavbar";
 import { usePageCheck } from "@/hooks/usePageCheck";
 import { useSession, signOut } from "next-auth/react";
+import { Suspense } from "react";
 
 const SidebarWrapper = () => {
   const pathname = usePageCheck();
@@ -33,33 +34,35 @@ const SidebarWrapper = () => {
 
       {/* User Menu */}
       {session && (
-        <div className="my-4 px-1 py-2 shadow rounded-xl border-slate-200 border-1">
-          <Dropdown>
-            <DropdownTrigger>
-              <div className="flex items-center gap-3 cursor-pointer">
-                <Avatar
-                  name={session.user?.name || "User"}
-                  src={session.user?.image || ""}
-                  size="sm"
-                />
-                <span className="text-sm font-medium">
-                  {session.user?.name}
-                </span>
-              </div>
-            </DropdownTrigger>
-            <DropdownMenu>
-              <DropdownItem key="profile">Profile</DropdownItem>
-              <DropdownItem key="settings">Settings</DropdownItem>
-              <DropdownItem
-                key="logout"
-                color="danger"
-                onClick={() => signOut()}
-              >
-                Logout
-              </DropdownItem>
-            </DropdownMenu>
-          </Dropdown>
-        </div>
+        <Suspense fallback="Loading">
+          <div className="my-4 px-1 py-2 max-h-52 shadow rounded-xl border-slate-200 border-1">
+            <Dropdown>
+              <DropdownTrigger>
+                <div className="flex items-center gap-3 cursor-pointer">
+                  <Avatar
+                    name={session.user?.name || "User"}
+                    src={session.user?.image || ""}
+                    size="sm"
+                  />
+                  <span className="text-sm font-medium">
+                    {session.user?.name}
+                  </span>
+                </div>
+              </DropdownTrigger>
+              <DropdownMenu>
+                <DropdownItem key="profile">Profile</DropdownItem>
+                <DropdownItem key="settings">Settings</DropdownItem>
+                <DropdownItem
+                  key="logout"
+                  color="danger"
+                  onClick={() => signOut()}
+                >
+                  Logout
+                </DropdownItem>
+              </DropdownMenu>
+            </Dropdown>
+          </div>
+        </Suspense>
       )}
 
       {/* Navigation Menu */}
