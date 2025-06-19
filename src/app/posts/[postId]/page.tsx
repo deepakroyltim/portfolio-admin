@@ -4,19 +4,26 @@ import {
   Input,
   Button,
   Textarea,
-  Dropdown,
-  DropdownTrigger,
-  DropdownMenu,
-  DropdownItem,
   Link,
   Tooltip,
+  Select,
+  SelectItem,
 } from "@heroui/react";
 import { useState, useEffect } from "react";
-import posts from "@/data/blog_posts.json";
 import { useParams } from "next/navigation";
-import CKEditorComponent from "@/components/Editor/CKEditor";
 import { BsArrowLeftSquareFill } from "react-icons/bs";
+import CKEditorComponent from "@/components/Editor/CKEditor";
+
 import PostFormSkeleton from "@/components/skeltons/PostFormSkelton";
+import posts from "@/data/blog_posts.json";
+import postMeta from "@/data/extracted_data.json";
+
+const categoryItems = postMeta?.categories?.map((category) => ({
+  key: category,
+  label: category,
+}));
+
+const tagsItems = postMeta?.tags?.map((tag) => ({ key: tag, label: tag }));
 
 type PostProps = {
   slug: string;
@@ -35,12 +42,17 @@ export default function PostsPage() {
   const [post, setPost] = useState<PostProps | null>(null);
   const [loading, setLoading] = useState(true);
   const [action, setAction] = useState<string | null>(null);
+  const [selectedCategory, setCategory] = useState<Set<string>>(new Set());
+  const [selectedTags, setTags] = useState<Set<string>>(new Set());
+  console.log(selectedTags);
 
   useEffect(() => {
     if (postId) {
       const foundPost = posts.find((p): p is PostProps => p.slug === postId);
       if (foundPost) {
         setPost(foundPost);
+        setCategory(new Set([foundPost.category]));
+        setTags(new Set(foundPost.tags));
       } else {
         setPost(null); // explicitly handle undefined case
       }
@@ -54,7 +66,6 @@ export default function PostsPage() {
         <PostFormSkeleton />
       ) : (
         <>
-          {/* Dashboard Header */}
           <div>
             <h1 className="text-3xl font-bold flex justify-start items-center">
               <Tooltip content="Back to all posts">
@@ -66,7 +77,6 @@ export default function PostsPage() {
             </h1>
           </div>
 
-          {/* Key Metrics */}
           <section>
             <Form
               className="w-full max-w-4xl flex flex-col gap-4"
@@ -121,44 +131,59 @@ export default function PostsPage() {
               </div>
 
               <div className="w-full flex flex-row gap-2">
-                <div className="basis-1/5">
+                <Select
+                  name="category"
+                  className="max-w-xs"
+                  label="Select a category"
+                  selectionMode="single"
+                  selectedKeys={selectedCategory}
+                  onSelectionChange={(keys) =>
+                    setCategory(new Set(keys as string))
+                  }
+                >
+                  {categoryItems.map((cat) => (
+                    <SelectItem key={cat.key}>{cat.label}</SelectItem>
+                  ))}
+                </Select>
+                <Select
+                  name="tags"
+                  className="max-w-xs"
+                  label="Select tags"
+                  selectionMode="multiple"
+                  selectedKeys={selectedTags}
+                  onSelectionChange={(keys) => setTags(new Set(keys as string))}
+                >
+                  {tagsItems.map((tag) => (
+                    <SelectItem key={tag.key}>{tag.label}</SelectItem>
+                  ))}
+                </Select>
+
+                {/* <div className="basis-1/5">
+                  <h6>Category</h6>
                   <Dropdown>
                     <DropdownTrigger>
                       <Button variant="bordered">Select Category</Button>
                     </DropdownTrigger>
-                    <DropdownMenu aria-label="Static Actions">
-                      <DropdownItem key="new">New file</DropdownItem>
-                      <DropdownItem key="copy">Copy link</DropdownItem>
-                      <DropdownItem key="edit">Edit file</DropdownItem>
-                      <DropdownItem
-                        key="delete"
-                        className="text-danger"
-                        color="danger"
-                      >
-                        Delete file
-                      </DropdownItem>
+                    <DropdownMenu aria-label="Categories" items={categoryItems}>
+                      {(item) => (
+                        <DropdownItem key={item.key}>{item.label}</DropdownItem>
+                      )}
                     </DropdownMenu>
                   </Dropdown>
                 </div>
                 <div className="basis-1/5">
+                  <h6>Tags</h6>
                   <Dropdown>
                     <DropdownTrigger>
                       <Button variant="bordered">Select Tags</Button>
                     </DropdownTrigger>
-                    <DropdownMenu aria-label="Static Actions">
-                      <DropdownItem key="new">New file</DropdownItem>
-                      <DropdownItem key="copy">Copy link</DropdownItem>
-                      <DropdownItem key="edit">Edit file</DropdownItem>
-                      <DropdownItem
-                        key="delete"
-                        className="text-danger"
-                        color="danger"
-                      >
-                        Delete file
-                      </DropdownItem>
+                    <DropdownMenu aria-label="Tags" items={tagsItems}>
+                      {(item) => (
+                        <DropdownItem key={item.key}>{item.label}</DropdownItem>
+                      )}
                     </DropdownMenu>
                   </Dropdown>
-                </div>
+                </div> */}
               </div>
               <div className="flex gap-2">
                 <Button color="primary" type="submit" size="lg">
