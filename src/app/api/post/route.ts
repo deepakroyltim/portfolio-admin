@@ -1,59 +1,73 @@
 import { NextRequest, NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
 import { auth } from "@/auth";
+import { error } from "console";
 
 const client = new PrismaClient();
 
 // Get Post
 export async function GET() {
-  const posts = await client.post.findMany({
-    include: {
-      user: {
-        select: { id: true, name: true, image: true },
-      },
-      postTaxonomies: {
-        include: {
-          taxonomyMeta: {
-            include: {
-              taxonomy: true,
+  try {
+    const posts = await client.post.findMany({
+      include: {
+        user: {
+          select: { id: true, name: true, image: true },
+        },
+        postTaxonomies: {
+          include: {
+            taxonomyMeta: {
+              include: {
+                taxonomy: true,
+              },
             },
           },
         },
       },
-    },
-  });
+    });
 
-  // Transform the data for better structure
-  const transformPosts = posts.map((post) => {
-    const category: (typeof post.postTaxonomies)[0]["taxonomyMeta"][] = [];
-    const tags: (typeof post.postTaxonomies)[0]["taxonomyMeta"][] = [];
-    for (const pt of post.postTaxonomies) {
-      const meta = pt.taxonomyMeta;
-      if (meta?.taxonomy?.slug === "category") {
-        category.push(meta);
+    // Transform the data for better structure
+    const transformPosts = posts.map((post) => {
+      const category: (typeof post.postTaxonomies)[0]["taxonomyMeta"][] = [];
+      const tags: (typeof post.postTaxonomies)[0]["taxonomyMeta"][] = [];
+      for (const pt of post.postTaxonomies) {
+        const meta = pt.taxonomyMeta;
+        if (meta?.taxonomy?.slug === "category") {
+          category.push(meta);
+        }
+        if (meta?.taxonomy?.slug === "tags") {
+          tags.push(meta);
+        }
       }
-      if (meta?.taxonomy?.slug === "tags") {
-        tags.push(meta);
-      }
+
+      return {
+        id: post.id,
+        title: post.title,
+        slug: post.slug,
+        summary: post.summary,
+        content: post.content,
+        image: post.image,
+        date: post.date,
+        user: post.user,
+        category,
+        tags,
+        createdAt: post.createdAt,
+        updatedAt: post.updatedAt,
+      };
+    });
+
+    return NextResponse.json({ success: true, posts: transformPosts });
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      return NextResponse.json({ success: false, error: error.message });
     }
-
-    return {
-      id: post.id,
-      title: post.title,
-      slug: post.slug,
-      summary: post.summary,
-      content: post.content,
-      image: post.image,
-      date: post.date,
-      user: post.user,
-      category,
-      tags,
-      createdAt: post.createdAt,
-      updatedAt: post.updatedAt,
-    };
-  });
-
-  return NextResponse.json({ success: true, posts: transformPosts });
+    return NextResponse.json(
+      {
+        success: false,
+        error: "Something went wrong, Please try after sometime.",
+      },
+      { status: 500 }
+    );
+  }
 }
 
 // Create post
