@@ -1,9 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
 import { auth } from "@/auth";
-import { error } from "console";
+import path from "path";
+import fs from "fs";
+import { writeFile } from "fs/promises";
+import { revalidatePath } from "next/cache";
 
 const client = new PrismaClient();
+const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
 
 // Get Post
 export async function GET() {
@@ -70,10 +74,17 @@ export async function GET() {
   }
 }
 
-// Create post
+// Create Post
 export async function POST(req: NextRequest) {
-  const body = await req.json();
-  const { title, slug, summary, content, categoryId, tagsId } = body;
+  const formData = await req.formData();
+  const title = formData.get("title") as string;
+  const slug = formData.get("slug") as string;
+  const summary = formData.get("summary") as string;
+  const content = formData.get("content") as string;
+  const categoryId = formData.get("categoryId") as string;
+  const tagsId = formData.get("tagsId") as string;
+  const imageFile = formData.get("image") as File;
+
   const tagsIdArray =
     typeof tagsId === "string" && tagsId.length > 0 ? tagsId.split(",") : [];
 
@@ -83,6 +94,21 @@ export async function POST(req: NextRequest) {
     userId = "cmc2a4xqj0000x30ypcgmtekv";
   }
 
+  let imageUrl = "https://picsum.photos/1120/400"; // fallback
+  if (imageFile) {
+    const bytes = await imageFile.arrayBuffer();
+    const buffer = Buffer.from(bytes);
+    const uploadDir = path.join(process.cwd(), "public", "uploads");
+
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
+
+    const filePath = path.join(uploadDir, imageFile.name);
+    await writeFile(filePath, buffer);
+    imageUrl = `${baseUrl}/uploads/${imageFile.name}`;
+  }
+
   try {
     const newPost = await client.post.create({
       data: {
@@ -90,7 +116,7 @@ export async function POST(req: NextRequest) {
         slug,
         summary,
         content,
-        image: "https://picsum.photos/1120/400",
+        image: imageUrl,
         userId,
       },
     });
@@ -112,7 +138,7 @@ export async function POST(req: NextRequest) {
     await client.postTaxonomy.createMany({
       data: postTaxonomiesData,
     });
-
+    revalidatePath(`/posts`);
     return NextResponse.json({ success: true, post: newPost });
   } catch (error: unknown) {
     console.error("Error creating post:", error);

@@ -10,8 +10,9 @@ import {
   Select,
   SelectItem,
   Alert,
+  Image,
 } from "@heroui/react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { BsArrowLeftSquareFill, BsArrowLeftShort } from "react-icons/bs";
 import CKEditorComponent from "@/components/Editor/CKEditor";
 
@@ -46,7 +47,7 @@ interface EditPostPageClientProps {
 
 const EditPostPageClient = ({ data }: { data: EditPostPageClientProps }) => {
   const { post, categories, tags } = data;
-  console.log("Old POst:", post);
+
   const [editorData, setEditorData] = useState<string>(post.content);
 
   const [title, setTitle] = useState(post.title);
@@ -63,9 +64,25 @@ const EditPostPageClient = ({ data }: { data: EditPostPageClientProps }) => {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
+  const [imagePreview, setImagePreview] = useState<string>(post.image || "");
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [fileName, setFileName] = useState<String>("");
+
   const handleEditorChange = (event: any, editor: any) => {
     const data = editor.getData();
     setEditorData(data);
+  };
+
+  const handleClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChang = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      setFileName(file.name);
+      setImagePreview(URL.createObjectURL(file));
+    }
   };
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -145,7 +162,35 @@ const EditPostPageClient = ({ data }: { data: EditPostPageClientProps }) => {
               />
             </div>
           </div>
-          <Input type="hidden" name="image" value={post?.image || ""} />
+          <div className="w-full flex justify-start items-center bg-primary-100 ps-2 rounded-2xl space-x-6 space-y-2">
+            <Button
+              type="button"
+              onPress={handleClick}
+              className="px-4 py-2 bg-primary"
+              color="default"
+            >
+              Choose File
+            </Button>
+
+            {imagePreview && (
+              <Image
+                src={imagePreview}
+                alt="Preview"
+                className="mt-2 w-64 h-auto rounded shadow"
+                width={300}
+              />
+            )}
+
+            <Input
+              type="file"
+              name="image"
+              id="image-file"
+              ref={fileInputRef}
+              className="hidden"
+              onChange={handleFileChang}
+              accept="image/*"
+            />
+          </div>
           <div className="w-full ">
             <Textarea
               isRequired
