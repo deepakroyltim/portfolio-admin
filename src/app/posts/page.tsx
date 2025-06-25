@@ -20,7 +20,7 @@ export default async function PostsPage() {
       {/* Dashboard Header */}
       <div className="flex justify-between">
         <h1 className="text-3xl font-bold">All Posts</h1>
-        <Button as={Link} href="/posts/add">
+        <Button as={Link} href="/posts/add" prefetch={true}>
           Add New Post
         </Button>
       </div>

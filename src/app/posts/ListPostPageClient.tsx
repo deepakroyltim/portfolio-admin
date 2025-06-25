@@ -10,8 +10,7 @@ import {
   TableCell,
   Chip,
   Alert,
-  user,
-  Image,
+  Avatar,
 } from "@heroui/react";
 import Link from "next/link";
 import { BsTrash3, BsPencilSquare } from "react-icons/bs";
@@ -80,13 +79,13 @@ const ListPostPageClient = ({ data }: { data: IncomingDataProps }) => {
                 </Link>
               </TableCell>
               <TableCell>
-                <div className="flex items-center gap-2">
-                  {post.user.image && (
-                    <Image
-                      src={post.user.image}
-                      className="w-8 h-8 rounded-full"
-                    />
-                  )}
+                <div className="flex items-center justify-start gap-2">
+                  <Avatar
+                    isBordered
+                    showFallback
+                    name={post.user.name}
+                    src={post.user.image}
+                  />
                   <Link href={`#`} color="secondary">
                     {post.user.name}
                   </Link>
