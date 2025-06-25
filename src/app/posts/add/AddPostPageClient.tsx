@@ -9,6 +9,7 @@ import {
   SelectItem,
   Textarea,
   Alert,
+  Image,
 } from "@heroui/react";
 
 import React, { FormEvent, useEffect, useRef, useState } from "react";
@@ -32,7 +33,7 @@ const PostPageClient = ({ categories, tags }: PostPageClientProps) => {
   const [name, setName] = useState("");
   const [slug, setSlug] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [fileName, setFileName] = useState<String>("");
+  const [imagePreview, setImagePreview] = useState<string>("");
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const formRef = useRef<HTMLFormElement>(null);
@@ -44,7 +45,7 @@ const PostPageClient = ({ categories, tags }: PostPageClientProps) => {
   const handleFileChang = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      setFileName(file.name);
+      setImagePreview(URL.createObjectURL(file));
     }
   };
 
@@ -69,9 +70,9 @@ const PostPageClient = ({ categories, tags }: PostPageClientProps) => {
       method: "POST",
       body: formData, // Send as FormData instead of JSON
     });
-
+    const result = await response.json();
     if (response.ok) {
-      setSuccess("Post saved successfully.");
+      setSuccess(result.message || "Post saved successfully.");
       setTimeout(() => setSuccess(null), 3000);
       setPostSaving(false);
 
@@ -80,9 +81,8 @@ const PostPageClient = ({ categories, tags }: PostPageClientProps) => {
       setName("");
       setSlug("");
       setSelectedTags("");
-      setFileName("");
     } else {
-      setError("Something went wrong...");
+      setError(result.error || "Something went wrong...");
       setTimeout(() => setError(null), 3000);
       setPostSaving(false);
     }
@@ -90,7 +90,10 @@ const PostPageClient = ({ categories, tags }: PostPageClientProps) => {
 
   return (
     <main className="flex-1 p-8 space-y-10">
-      <h1 className="text-3xl font-bold">Add Post</h1>
+      <div className="w-full max-w-4xl flex justify-between">
+        <h1 className="text-3xl font-bold">Add Post</h1>
+      </div>
+
       <section>
         <Form
           ref={formRef}
@@ -115,7 +118,7 @@ const PostPageClient = ({ categories, tags }: PostPageClientProps) => {
             isRequired
           />
 
-          <div className="space-y-2">
+          <div className="w-full flex justify-start items-center bg-default-100 rounded-2xl p-2 py-4 space-x-2">
             <Button
               type="button"
               onPress={handleClick}
@@ -124,8 +127,13 @@ const PostPageClient = ({ categories, tags }: PostPageClientProps) => {
             >
               Choose File
             </Button>
-            {fileName && (
-              <p className="text-sm text-gray-600">Selected: {fileName}</p>
+            {imagePreview && (
+              <Image
+                src={imagePreview}
+                alt="Preview"
+                className="w-64 h-auto rounded-2xl shadow"
+                width={300}
+              />
             )}
             <Input
               type="file"
