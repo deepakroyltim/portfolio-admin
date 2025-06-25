@@ -8,21 +8,11 @@ import {
   TableBody,
   TableRow,
   TableCell,
-  Dropdown,
-  DropdownMenu,
-  DropdownItem,
-  DropdownTrigger,
-  Spinner,
   Chip,
   Alert,
 } from "@heroui/react";
 import Link from "next/link";
-import {
-  BsTags,
-  BsThreeDotsVertical,
-  BsTrash3,
-  BsPencilSquare,
-} from "react-icons/bs";
+import { BsTrash3, BsPencilSquare } from "react-icons/bs";
 
 interface TaxonomyMeta {
   id: string;
@@ -94,7 +84,12 @@ const ListPostPageClient = ({ data }: { data: IncomingDataProps }) => {
 
               <TableCell>
                 {post.tags.map((tag) => (
-                  <Link href={`#`} color="secondary" className="me-1">
+                  <Link
+                    href={`#`}
+                    key={tag.name}
+                    color="secondary"
+                    className="me-1"
+                  >
                     <Chip className="mb-1">{tag.name}</Chip>
                   </Link>
                 ))}
@@ -102,23 +97,11 @@ const ListPostPageClient = ({ data }: { data: IncomingDataProps }) => {
               <TableCell>
                 <div className="relative flex justify-center  gap-2">
                   <Link href={`/posts/${post.slug}`}>
-                    <BsPencilSquare className="w-5 h-5 text-blue-800" />
+                    <BsPencilSquare className="w-5 h-5 text-black" />
                   </Link>
                   <Link href={`#`}>
                     <BsTrash3 className="w-5 h-5 text-danger" />
                   </Link>
-                  {/* <Dropdown>
-                    <DropdownTrigger>
-                      <Button size="sm" variant="light">
-                        <BsThreeDotsVertical className="h-5 w-5" />
-                      </Button>
-                    </DropdownTrigger>
-                    <DropdownMenu>
-                      <DropdownItem key="view">View</DropdownItem>
-                      <DropdownItem key="edit">Edit</DropdownItem>
-                      <DropdownItem key="delete">Delete</DropdownItem>
-                    </DropdownMenu>
-                  </Dropdown> */}
                 </div>
               </TableCell>
             </TableRow>

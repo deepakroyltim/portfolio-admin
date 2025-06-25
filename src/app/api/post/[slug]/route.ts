@@ -1,8 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
 import { revalidatePath } from "next/cache";
+import path from "path";
+import fs from "fs";
+import { writeFile } from "fs/promises";
 
 const client = new PrismaClient();
+const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
 
 type UrlSlug = {
   params: Promise<{ slug: string }>;
@@ -83,31 +87,64 @@ export async function GET(req: NextRequest, { params }: UrlSlug) {
 }
 
 export async function PUT(req: NextRequest) {
-  const body = await req.json();
-  const {
-    postId,
+  const formData = await req.formData();
+  const postId = formData.get("postId") as string;
+  const userId = formData.get("userId") as string;
+  const title = formData.get("title") as string;
+  const slug = formData.get("slug") as string;
+  const summary = formData.get("summary") as string;
+  const content = formData.get("content") as string;
+  const categories = formData.get("categories") as string;
+  const tags = formData.get("tags") as string;
+  const imageFile = formData.get("image") as File;
+
+  const tagsIdArray =
+    typeof tags === "string" && tags.length > 0 ? JSON.parse(tags) : [];
+
+  const categoryIdArray =
+    typeof categories === "string" && categories.length > 0
+      ? JSON.parse(categories)
+      : [];
+
+  const payload: {
+    title: string;
+    slug: string;
+    summary: string;
+    content: string;
+    userId: string;
+    updatedAt: Date;
+    image?: string;
+  } = {
     title,
     slug,
     summary,
     content,
-    categories,
     userId,
-    tags,
-    image,
-  } = body;
+    updatedAt: new Date(),
+  };
+
+  if (imageFile) {
+    const bytes = await imageFile.arrayBuffer();
+    const buffer = Buffer.from(bytes);
+    const uploadDir = path.join(process.cwd(), "public", "uploads");
+    console.log("Upload", uploadDir);
+
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
+
+    const filePath = path.join(uploadDir, imageFile.name);
+    console.log("filePath", filePath);
+
+    await writeFile(filePath, buffer);
+    const imageUrl = `${baseUrl}/uploads/${imageFile.name}`;
+    payload.image = imageUrl;
+  }
 
   try {
     const updatedPost = await client.post.update({
       where: { id: postId },
-      data: {
-        title,
-        slug,
-        summary,
-        content,
-        userId,
-        image,
-        updatedAt: new Date(),
-      },
+      data: payload,
     });
 
     // Remove existing PostTaxonomy relations
@@ -116,7 +153,7 @@ export async function PUT(req: NextRequest) {
     });
 
     // Reconnect tags and category
-    const allTaxonomySlugs = [...tags, ...categories];
+    const allTaxonomySlugs = [...tagsIdArray, ...categoryIdArray];
 
     const taxonomyMeta = await client.taxonomyMeta.findMany({
       where: { slug: { in: allTaxonomySlugs } },
@@ -131,7 +168,11 @@ export async function PUT(req: NextRequest) {
       data: postTaxonomies,
     });
 
-    return NextResponse.json({ success: true, post: updatedPost });
+    return NextResponse.json({
+      success: true,
+      post: updatedPost,
+      message: "Post Updated Successfully.",
+    });
   } catch (error) {
     if (error instanceof Error) {
       return NextResponse.json({ success: false, error: error.message });

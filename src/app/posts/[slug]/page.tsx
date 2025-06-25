@@ -3,6 +3,7 @@ import { useParams } from "next/navigation";
 import PostFormSkeleton from "@/components/skeltons/PostFormSkelton";
 import EditPostPageClient from "./EditPostPageClient";
 
+export const dynamic = "force-dynamic";
 const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
 
 const fetchSinglePost = async (endpoint: string) => {

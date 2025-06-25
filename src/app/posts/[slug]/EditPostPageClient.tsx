@@ -10,8 +10,9 @@ import {
   Select,
   SelectItem,
   Alert,
+  Image,
 } from "@heroui/react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { BsArrowLeftSquareFill, BsArrowLeftShort } from "react-icons/bs";
 import CKEditorComponent from "@/components/Editor/CKEditor";
 
@@ -46,7 +47,7 @@ interface EditPostPageClientProps {
 
 const EditPostPageClient = ({ data }: { data: EditPostPageClientProps }) => {
   const { post, categories, tags } = data;
-  console.log("Old POst:", post);
+
   const [editorData, setEditorData] = useState<string>(post.content);
 
   const [title, setTitle] = useState(post.title);
@@ -63,37 +64,56 @@ const EditPostPageClient = ({ data }: { data: EditPostPageClientProps }) => {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
+  const [imagePreview, setImagePreview] = useState<string>(post.image || "");
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   const handleEditorChange = (event: any, editor: any) => {
     const data = editor.getData();
     setEditorData(data);
   };
 
+  const handleClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChang = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      setImageFile(file);
+      setImagePreview(URL.createObjectURL(file));
+    }
+  };
+
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setIsLoading(true);
-    let payload = {
-      title,
-      slug,
-      summary,
-      tags: Array.from(selectedTags),
-      categories: Array.from(selectedCategory),
-      content: editorData,
-      userId: post.user.id,
-      postId: post.id,
-    };
+
+    const formData = new FormData();
+    formData.append("title", title);
+    formData.append("slug", slug);
+    formData.append("summary", summary);
+    formData.append("content", editorData);
+    formData.append("userId", post.user.id);
+    formData.append("postId", post.id);
+    formData.append("tags", JSON.stringify(Array.from(selectedTags)));
+    formData.append("categories", JSON.stringify(Array.from(selectedCategory)));
+
+    if (imageFile) {
+      formData.append("image", imageFile);
+    }
 
     const response = await fetch(`/api/post/${post.slug}`, {
-      method: "put",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
+      method: "PUT",
+      body: formData,
     });
-
+    const result = await response.json();
     if (response.ok) {
-      setSuccess("Updated successfully.");
+      setSuccess(result.message || "Updated successfully.");
       setTimeout(() => setSuccess(null), 3000);
       setIsLoading(false);
     } else {
-      setError("Something went wrong...");
+      setError(result.error || "Something went wrong...");
       setTimeout(() => setError(null), 3000);
       setIsLoading(false);
     }
@@ -101,16 +121,20 @@ const EditPostPageClient = ({ data }: { data: EditPostPageClientProps }) => {
 
   return (
     <>
-      <div>
+      <div className="w-full max-w-4xl  flex justify-between">
         <h1 className="text-3xl font-bold flex justify-start items-center">
           <Tooltip content="Back to all posts">
-            <Link href="/posts" color="primary" className="font-bold">
+            <Link href="/posts" className="font-bold">
               <BsArrowLeftSquareFill className="w-7 h-7 me-2" />
             </Link>
           </Tooltip>
           {post?.title}
         </h1>
+        <Button as={Link} href="/posts/add" color="default">
+          Add New Post
+        </Button>
       </div>
+      <div></div>
 
       <section>
         <Form
@@ -145,7 +169,35 @@ const EditPostPageClient = ({ data }: { data: EditPostPageClientProps }) => {
               />
             </div>
           </div>
-          <Input type="hidden" name="image" value={post?.image || ""} />
+          <div className="w-full flex justify-start items-center bg-primary-100 p-2 rounded-2xl space-x-6 space-y-2">
+            <Button
+              type="button"
+              onPress={handleClick}
+              className="px-4 py-2 bg-primary"
+              color="default"
+            >
+              Choose File
+            </Button>
+
+            {imagePreview && (
+              <Image
+                src={imagePreview}
+                alt="Preview"
+                className="mt-2 w-64 h-auto rounded-2xl shadow"
+                width={300}
+              />
+            )}
+
+            <Input
+              type="file"
+              name="image"
+              id="image-file"
+              ref={fileInputRef}
+              className="hidden"
+              onChange={handleFileChang}
+              accept="image/*"
+            />
+          </div>
           <div className="w-full ">
             <Textarea
               isRequired
