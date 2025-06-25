@@ -10,6 +10,7 @@ import {
   TableCell,
   Chip,
   Alert,
+  Avatar,
 } from "@heroui/react";
 import Link from "next/link";
 import { BsTrash3, BsPencilSquare } from "react-icons/bs";
@@ -23,6 +24,7 @@ interface TaxonomyMeta {
 interface User {
   id: string;
   name: string;
+  image: string;
 }
 
 interface PostWithData {
@@ -77,9 +79,17 @@ const ListPostPageClient = ({ data }: { data: IncomingDataProps }) => {
                 </Link>
               </TableCell>
               <TableCell>
-                <Link href={`#`} color="secondary">
-                  {post.user.name}
-                </Link>
+                <div className="flex items-center justify-start gap-2">
+                  <Avatar
+                    isBordered
+                    showFallback
+                    name={post.user.name}
+                    src={post.user.image}
+                  />
+                  <Link href={`#`} color="secondary">
+                    {post.user.name}
+                  </Link>
+                </div>
               </TableCell>
 
               <TableCell>
