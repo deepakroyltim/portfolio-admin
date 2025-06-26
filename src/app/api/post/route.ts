@@ -103,10 +103,10 @@ export async function POST(req: NextRequest) {
     if (!fs.existsSync(uploadDir)) {
       fs.mkdirSync(uploadDir, { recursive: true });
     }
-
-    const filePath = path.join(uploadDir, imageFile.name);
+    const file_name = Date.now() + "-" + imageFile.name;
+    const filePath = path.join(uploadDir, file_name);
     await writeFile(filePath, buffer);
-    imageUrl = `${baseUrl}/uploads/${imageFile.name}`;
+    imageUrl = `${baseUrl}/uploads/${file_name}`;
   }
 
   try {

@@ -1,4 +1,4 @@
-import { Button } from "@heroui/react";
+import { Button, Chip } from "@heroui/react";
 
 import Link from "next/link";
 import ListPostPageClient from "./ListPostPageClient";
@@ -14,12 +14,20 @@ const fetchPost = async (endpint: string) => {
 
 export default async function PostsPage() {
   const [posts] = await Promise.all([fetchPost("api/post")]);
+  console.log("Posts", posts);
 
   return (
     <main className="flex-1 p-8 space-y-10">
       {/* Dashboard Header */}
-      <div className="flex justify-between">
-        <h1 className="text-3xl font-bold">All Posts</h1>
+      <div className="flex justify-between items-center">
+        <h1 className="text-3xl font-bold flex justify-center items-center">
+          All Posts{" "}
+          {posts && (
+            <Chip radius="full" variant="shadow" className="ms-2">
+              {posts?.posts.length}
+            </Chip>
+          )}
+        </h1>
         <Button as={Link} href="/posts/add" prefetch={true}>
           Add New Post
         </Button>

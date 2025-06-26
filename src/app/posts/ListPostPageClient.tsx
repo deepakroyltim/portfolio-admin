@@ -49,7 +49,7 @@ const ListPostPageClient = ({ data }: { data: IncomingDataProps }) => {
   return (
     <>
       {error && <Alert color="danger" title={error} className="mb-2" />}
-      <Table aria-label="collection table" isCompact>
+      <Table aria-label="collection table" className="shadow">
         <TableHeader>
           <TableColumn>SL</TableColumn>
           <TableColumn>Title</TableColumn>

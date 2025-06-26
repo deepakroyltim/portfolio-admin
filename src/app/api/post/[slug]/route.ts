@@ -133,11 +133,12 @@ export async function PUT(req: NextRequest) {
       fs.mkdirSync(uploadDir, { recursive: true });
     }
 
-    const filePath = path.join(uploadDir, imageFile.name);
+    const file_name = Date.now() + "-" + imageFile.name;
+    const filePath = path.join(uploadDir, file_name);
     console.log("filePath", filePath);
 
     await writeFile(filePath, buffer);
-    const imageUrl = `${baseUrl}/uploads/${imageFile.name}`;
+    const imageUrl = `${baseUrl}/uploads/${file_name}`;
     payload.image = imageUrl;
   }
 
