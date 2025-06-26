@@ -45,11 +45,11 @@ interface IncomingDataProps {
 
 const ListPostPageClient = ({ data }: { data: IncomingDataProps }) => {
   const { success, posts, error } = data;
-  console.log(error);
+  // console.log(error);
   return (
     <>
       {error && <Alert color="danger" title={error} className="mb-2" />}
-      <Table aria-label="collection table" className="shadow">
+      <Table aria-label="collection table">
         <TableHeader>
           <TableColumn>SL</TableColumn>
           <TableColumn>Title</TableColumn>
@@ -107,7 +107,7 @@ const ListPostPageClient = ({ data }: { data: IncomingDataProps }) => {
               <TableCell>
                 <div className="relative flex justify-center  gap-2">
                   <Link href={`/posts/${post.slug}`}>
-                    <BsPencilSquare className="w-5 h-5 text-black" />
+                    <BsPencilSquare className="w-5 h-5" />
                   </Link>
                   <Link href={`#`}>
                     <BsTrash3 className="w-5 h-5 text-danger" />
