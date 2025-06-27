@@ -14,7 +14,7 @@ const fetchPost = async (endpint: string) => {
 
 export default async function PostsPage() {
   const [posts] = await Promise.all([fetchPost("api/post")]);
-  console.log("Posts", posts);
+  // console.log("Posts", posts);
 
   return (
     <main className="flex-1 p-8 space-y-10">
